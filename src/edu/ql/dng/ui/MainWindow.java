@@ -59,7 +59,8 @@ public class MainWindow extends JFrame {
 	private JButton jbModify;
 	private JButton jbDelet;
 	private JButton jbQuery;
-
+    private JButton jbBack;
+	
 	private JTable jtShow;
 	private JScrollPane scroll;
 	private Object data[][];
@@ -90,7 +91,8 @@ public class MainWindow extends JFrame {
 		jbModify = new JButton("修 改");
 		jbDelet = new JButton("删 除");
 		jbQuery = new JButton("查 询");
-
+		jbBack = new JButton("返 回");
+		
 		// 。。。获取数据
 		getData();
 		// 建立模型
@@ -176,6 +178,14 @@ public class MainWindow extends JFrame {
                  queryListener(e);
 			}
 		});
+		jbBack.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				backListener(e);
+			}
+		});
 		init();
 	}
     //设计界面
@@ -207,7 +217,8 @@ public class MainWindow extends JFrame {
 		jbModify.setBounds(240, 180, 80, 20);
 		jbDelet.setBounds(500, 180, 80, 20);
 		jbQuery.setBounds(720, 180, 80, 20);
-
+		jbBack.setBounds(720, 180, 80, 20);
+		
 		scroll.setBounds(20, 220, 780, 400);
 
 		jpMain.add(jlName);
@@ -313,12 +324,23 @@ public class MainWindow extends JFrame {
 		user.setPassword(password);
 		user.setRegin(regin);
         SAXFactory.write(user);
+        JOptionPane.showMessageDialog(null, "添加成功", "提示",
+				JOptionPane.INFORMATION_MESSAGE);
         validate(); 
 	}
 	private void deleteListener(ActionEvent e){
-		users.remove(ROW);
-		SAXFactory.writeList(users);
-		validate(); 
+		if(ROW==-1) {
+			JOptionPane.showMessageDialog(null, "选择删除行", "警告",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		} else {
+			users.remove(ROW);
+			ROW = -1;
+			SAXFactory.writeList(users);
+			JOptionPane.showMessageDialog(null, "删除成功", "提示",
+					JOptionPane.INFORMATION_MESSAGE);
+			validate();
+		}
 	}
 
 	private void modifyListener(ActionEvent e) {
@@ -377,11 +399,20 @@ public class MainWindow extends JFrame {
 		users.remove(ROW);
 		users.add(user);
 		SAXFactory.writeList(users);
+		JOptionPane.showMessageDialog(null, "修改成功", "提示",
+					JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	private void queryListener(ActionEvent e) {
          new QueryWin();
+         jpMain.remove(jbQuery);
+         jpMain.add(jbBack);
 	}
+	private void backListener(ActionEvent e){
+		 jpMain.remove(jbBack);
+         jpMain.add(jbQuery);
+	}
+	
 	public static void main(String[] args) {
 		new MainWindow();
 	}
