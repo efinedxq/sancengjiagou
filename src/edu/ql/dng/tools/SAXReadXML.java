@@ -24,7 +24,6 @@ public class SAXReadXML extends DefaultHandler {
 				.toString().trim();
 		if (content.length() == 0)
 			return;
-
 		element = elementStack.peek().toString();
 		switch (element) {
 		case Constant.USERNAME:
@@ -63,12 +62,11 @@ public class SAXReadXML extends DefaultHandler {
 	@Override
 	public void startElement(String uri, String localName, String name,
 			Attributes attributes) throws SAXException {
-		if (name.equals("book")) {
+		if (name.equals(Constant.USER)) {
 			temp = new User();
 			temp.setId(attributes.getValue(0));
-			elementStack.push(name);
-		} else
-			elementStack.push(name);
+		} 
+		elementStack.push(name);
 	}
 
 	public List<User> getUsers() {

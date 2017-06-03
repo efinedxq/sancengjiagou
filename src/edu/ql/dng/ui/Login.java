@@ -6,8 +6,11 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+
+import edu.ql.dng.common.Constant;
 
 public class Login extends JFrame{
 	private JPanel jpLogin;
@@ -50,7 +53,19 @@ public class Login extends JFrame{
 	}
 	
 	public void btnActionEvent(ActionEvent e) {
-		
+		String pw = jtfPass.getText();
+		if(pw.equals(Constant.PW)){
+			this.dispose();
+			new MainWindow();
+		}
+		else if(pw.isEmpty()){
+			JOptionPane.showMessageDialog(null, "²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+		}
+		else{
+			JOptionPane.showMessageDialog(null, "ÃÜÂë´íÎó", "´íÎó",
+					JOptionPane.ERROR_MESSAGE);
+		}
 	}
 	
 	public static void main(String[] args) {

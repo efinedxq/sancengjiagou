@@ -1,16 +1,22 @@
 package edu.ql.dng.ui;
 
 import java.awt.Color;
+import java.awt.Event;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -20,13 +26,20 @@ import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+
+import com.sun.xml.internal.bind.v2.util.XmlFactory;
+
 import javax.swing.RowFilter.ComparisonType;
 import javax.swing.RowFilter.Entry;
 
 import edu.ql.dng.model.User;
+import edu.ql.dng.tools.SAXFactory;
+import edu.ql.dng.tools.SAXWriteXML;
 import sun.swing.table.DefaultTableCellHeaderRenderer;
 
 public class MainWindow extends JFrame {
+	private List<User> users;
+	private int ROW = -1;
 	private JPanel jpMain;
 	private JLabel jlName;
 	private JLabel jlRegin;
@@ -46,26 +59,24 @@ public class MainWindow extends JFrame {
 	private JButton jbModify;
 	private JButton jbDelet;
 	private JButton jbQuery;
-	
+
 	private JTable jtShow;
 	private JScrollPane scroll;
 	private Object data[][];
-	private Object columnName[] = {"å®¢æˆ·åç§°","å›½å®¶/åœ°åŒº","Email","ç”³è¯·æ—¥æœŸ","å®‰è£…ç ","åˆå§‹å¯†ç ","è®¡ç®—æœºè¯´æ˜"};
-    private ArrayList<User> users;
-    private HashSet<Integer> removedRowIndices;
-	
-	
+	private Object columnName[] = { "¿Í»§Ãû³Æ", "¹ú¼Ò/µØÇø", "Email", "ÉêÇëÈÕÆÚ", "°²×°Âë", "³õÊ¼ÃÜÂë", "¼ÆËã»úËµÃ÷" };
+	private HashSet<Integer> removedRowIndices;
+
 	public MainWindow() {
-		super("å¯åŠ¨å¯†ç ç®¡ç†ç³»ç»Ÿ");
+		super("Æô¶¯ÃÜÂë¹ÜÀíÏµÍ³");
 		jpMain = new JPanel();
 
-		jlName = new JLabel("å®¢æˆ·åç§°ï¼š");
-		jlRegin = new JLabel("å›½å®¶/åœ°åŒºï¼š");
-		jlEmail = new JLabel("ç”µå­é‚®ä»¶ï¼š");
-		jlDate = new JLabel("å¯†ç ç”³è¯·æ—¥æœŸï¼š");
-		jlInstall = new JLabel("å®‰è£…ç ï¼š");
-		jlInstruction = new JLabel("è®¡ç®—æœºè¯´æ˜ï¼š");
-		jlPassword = new JLabel("åˆå§‹å¯†ç ï¼š");
+		jlName = new JLabel("¿Í»§Ãû³Æ£º");
+		jlRegin = new JLabel("¹ú¼Ò/µØÇø£º");
+		jlEmail = new JLabel("µç×ÓÓÊ¼ş£º");
+		jlDate = new JLabel("ÃÜÂëÉêÇëÈÕÆÚ£º");
+		jlInstall = new JLabel("°²×°Âë£º");
+		jlInstruction = new JLabel("¼ÆËã»úËµÃ÷£º");
+		jlPassword = new JLabel("³õÊ¼ÃÜÂë£º");
 
 		jtfName = new JTextField();
 		jtfRegin = new JTextField();
@@ -75,80 +86,99 @@ public class MainWindow extends JFrame {
 		jtfPass = new JTextField();
 		jtaInstall = new JTextArea();
 
-		jbAdd = new JButton("æ·» åŠ ");
-		jbModify = new JButton("ä¿® æ”¹");
-		jbDelet = new JButton("åˆ  é™¤");
-		jbQuery = new JButton("æŸ¥ è¯¢");
+		jbAdd = new JButton("Ìí ¼Ó");
+		jbModify = new JButton("ĞŞ ¸Ä");
+		jbDelet = new JButton("É¾ ³ı");
+		jbQuery = new JButton("²é Ñ¯");
 
-		//ã€‚ã€‚ã€‚è·å–æ•°æ®
+		// ¡£¡£¡£»ñÈ¡Êı¾İ
 		getData();
-		//å»ºç«‹æ¨¡å‹
-		TableModel model = new DefaultTableModel(data,columnName){
-			//è·å–æŸåˆ—çš„æ•°æ®ç±»å‹
-			public Class<?> getColumnClass(int c){
+		// ½¨Á¢Ä£ĞÍ
+		TableModel model = new DefaultTableModel(data, columnName) {
+			// »ñÈ¡Ä³ÁĞµÄÊı¾İÀàĞÍ
+			public Class<?> getColumnClass(int c) {
 				return data[0][c].getClass();
 			}
 		};
-		jtShow = new JTable(model){
-			public boolean isCellEditable(int row, int column) {				// è¡¨æ ¼ä¸å¯ç¼–è¾‘
+		jtShow = new JTable(model) {
+			public boolean isCellEditable(int row, int column) { // ±í¸ñ²»¿É±à¼­
 				return false;
 			}
 		};
-		//è®¾ç½®é»˜è®¤å±…ä¸­
+		// ÉèÖÃÄ¬ÈÏ¾ÓÖĞ
 		DefaultTableCellHeaderRenderer r = new DefaultTableCellHeaderRenderer();
 		r.setHorizontalAlignment(JLabel.CENTER);
 		jtShow.setDefaultRenderer(Object.class, r);
-		//è¡Œæ’åºï¼Œè¡Œè¿‡æ»¤
+		// ĞĞÅÅĞò£¬ĞĞ¹ıÂË
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(model);
-	    jtShow.setRowSorter(sorter);
-	    
-	    removedRowIndices = new HashSet<>();
-	    final RowFilter<TableModel, Integer> filter = new RowFilter<TableModel, Integer>() {
-			public boolean include(
-					Entry<? extends TableModel, ? extends Integer> entry) {
+		jtShow.setRowSorter(sorter);
+
+		removedRowIndices = new HashSet<>();
+		final RowFilter<TableModel, Integer> filter = new RowFilter<TableModel, Integer>() {
+			public boolean include(Entry<? extends TableModel, ? extends Integer> entry) {
 				return !removedRowIndices.contains(entry.getIdentifier());
 			}
 		};
-	    jtShow.setRowHeight(30);
-	    jtShow.setRowMargin(5);
-	    jtShow.setRowSelectionInterval(0, 0);
-	    jtShow.addMouseListener(new MouseListener() {
-			
+		jtShow.setRowHeight(30);
+		jtShow.setRowMargin(5);
+		jtShow.setRowSelectionInterval(0, 0);
+		jtShow.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int sr;
+                if ((sr = jtShow.getSelectedRow()) == -1) {
+                    return;
+                }
+                if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
+//                	System.out.println(e.getX()+"  "+jtShow.getSelectedRow());
+                	ROW = jtShow.getSelectedRow();
+                	User u = users.get(ROW); 
+                	jtfName.setText(u.getUserName());
+                	jtfDate.setText(u.getCreateDate());
+                	jtfEmail.setText(u.getEmail());
+                	jtfInstruction.setText(u.getInstruction());
+                	jtaInstall.setText(u.getInstallNum());
+                	jtfRegin.setText(u.getRegin());
+                	jtfPass.setText(u.getPassword());
+                }
+            }
+		});
+		scroll = new JScrollPane(jtShow);
+
+		jbAdd.addActionListener(new ActionListener() {
 			@Override
-			public void mouseReleased(MouseEvent e) {
+			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void mousePressed(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void mouseExited(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
+				addListener(e);
 			}
 		});
-	    scroll = new JScrollPane(jtShow);
-	  
+		jbDelet.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				deleteListener(e);
+			}
+		});
+		jbModify.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+              modifyListener(e);
+			}
+		});
+		jbQuery.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+                 queryListener(e);
+			}
+		});
 		init();
 	}
-
+    //Éè¼Æ½çÃæ
 	void init() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(850, 700);
@@ -159,7 +189,7 @@ public class MainWindow extends JFrame {
 		jlName.setBounds(20, 20, 100, 20);
 		jlRegin.setBounds(20, 60, 100, 20);
 		jlEmail.setBounds(20, 100, 100, 20);
-		jlDate.setBounds(20, 140, 100, 20);
+		jlInstruction.setBounds(20, 140, 100, 20);
 
 		jlInstall.setBounds(500, 20, 100, 20);
 		jlInstruction.setBounds(500, 100, 100, 20);
@@ -177,9 +207,9 @@ public class MainWindow extends JFrame {
 		jbModify.setBounds(240, 180, 80, 20);
 		jbDelet.setBounds(500, 180, 80, 20);
 		jbQuery.setBounds(720, 180, 80, 20);
-        
+
 		scroll.setBounds(20, 220, 780, 400);
-		
+
 		jpMain.add(jlName);
 		jpMain.add(jlRegin);
 		jpMain.add(jlEmail);
@@ -204,27 +234,20 @@ public class MainWindow extends JFrame {
 		jpMain.add(scroll);
 
 		add(jpMain);
-
+         
 		setVisible(true);
 	}
-	
-    //å¯åŠ¨ç•Œé¢å‰è·å–æ‰€éœ€æ•°æ®ï¼Œè¿™é‡Œè·å–çš„æ˜¯ç”¨æˆ·æ•°æ®
-	private void getData(){
-		User user = new User();
-		user.setId("1");
-		user.setCreateDate("111");
-		user.setEmail("222");
-		user.setInstallNum("111");
-		user.setInstruction("111");
-		user.setRegin("111");
-		user.setUserName("111");
-		user.setPassword("1111");
-		//ç”¨æˆ·æ•°æ®
-		users = new ArrayList<User>();
-		users.add(user);
-		
+
+	// Æô¶¯½çÃæÇ°»ñÈ¡ËùĞèÊı¾İ£¬ÕâÀï»ñÈ¡µÄÊÇÓÃ»§Êı¾İ
+	private void getData() {
+		// ÓÃ»§Êı¾İ
+		users = SAXFactory.read();
+
+		if (users == null)
+			users = new ArrayList<User>();
+
 		data = new Object[users.size()][7];
-		for(int i = 0; i < users.size(); i ++){
+		for (int i = 0; i < users.size(); i++) {
 			data[i][0] = users.get(i).getUserName();
 			data[i][1] = users.get(i).getRegin();
 			data[i][2] = users.get(i).getEmail();
@@ -234,7 +257,131 @@ public class MainWindow extends JFrame {
 			data[i][6] = users.get(i).getInstruction();
 		}
 	}
+ 
 	
+	//ÉèÖÃ¼àÌı
+	private void addListener(ActionEvent e){
+        User user = new User();
+		String userName = jtfName.getText();
+		String regin = jtfRegin.getText();
+		String email = jtfEmail.getText();
+		String createDate = jtfDate.getText();
+		String installNum = jtaInstall.getText();
+		String instruction = jtfInstruction.getText();
+		String password = jtfPass.getText();
+        
+		if(userName.isEmpty()){
+			JOptionPane.showMessageDialog(null, "ÓÃ»§Ãû²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		if(regin.isEmpty()){
+			JOptionPane.showMessageDialog(null, "µØÇø²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		if(email.isEmpty()){
+			JOptionPane.showMessageDialog(null, "ÓÊÏä²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		if(createDate.isEmpty()){
+			JOptionPane.showMessageDialog(null, "ÈÕÆÚ²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		if(installNum.isEmpty()){
+			JOptionPane.showMessageDialog(null, "°²×°Âë²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		if(instruction.isEmpty()){
+			JOptionPane.showMessageDialog(null, "¼ÆËã»úËµÃ÷²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		if(password.isEmpty()){
+			JOptionPane.showMessageDialog(null, "ÃÜÂë²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		user.setUserName(userName);
+		user.setCreateDate(createDate);
+		user.setEmail(email);
+		user.setInstallNum(installNum);
+		user.setInstruction(instruction);
+		user.setPassword(password);
+		user.setRegin(regin);
+        SAXFactory.write(user);
+        validate(); 
+	}
+	private void deleteListener(ActionEvent e){
+		users.remove(ROW);
+		SAXFactory.writeList(users);
+		validate(); 
+	}
+
+	private void modifyListener(ActionEvent e) {
+		User user = new User();
+		String userName = jtfName.getText();
+		String regin = jtfRegin.getText();
+		String email = jtfEmail.getText();
+		String createDate = jtfDate.getText();
+		String installNum = jtaInstall.getText();
+		String instruction = jtfInstruction.getText();
+		String password = jtfPass.getText();
+        
+		if(userName.isEmpty()){
+			JOptionPane.showMessageDialog(null, "ÓÃ»§Ãû²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		if(regin.isEmpty()){
+			JOptionPane.showMessageDialog(null, "µØÇø²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		if(email.isEmpty()){
+			JOptionPane.showMessageDialog(null, "ÓÊÏä²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		if(createDate.isEmpty()){
+			JOptionPane.showMessageDialog(null, "ÈÕÆÚ²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		if(installNum.isEmpty()){
+			JOptionPane.showMessageDialog(null, "°²×°Âë²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		if(instruction.isEmpty()){
+			JOptionPane.showMessageDialog(null, "¼ÆËã»úËµÃ÷²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		if(password.isEmpty()){
+			JOptionPane.showMessageDialog(null, "ÃÜÂë²»ÄÜÎª¿Õ", "¾¯¸æ",
+					JOptionPane.WARNING_MESSAGE);
+			return ;
+		}
+		user.setUserName(userName);
+		user.setCreateDate(createDate);
+		user.setEmail(email);
+		user.setInstallNum(installNum);
+		user.setInstruction(instruction);
+		user.setPassword(password);
+		user.setRegin(regin);
+		user.setId(ROW+"");
+		users.remove(ROW);
+		users.add(user);
+		SAXFactory.writeList(users);
+	}
+
+	private void queryListener(ActionEvent e) {
+         new QueryWin();
+	}
 	public static void main(String[] args) {
 		new MainWindow();
 	}

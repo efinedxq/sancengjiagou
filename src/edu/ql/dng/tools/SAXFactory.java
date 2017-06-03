@@ -23,22 +23,39 @@ public class SAXFactory {
 			parser.parse(filePath, handler);
 			users =  handler.getUsers();
 		} catch (ParserConfigurationException e) {
-			// TODO 自动生成的 catch 块
 			e.printStackTrace();
 		} catch (SAXException e) {
-			// TODO 自动生成的 catch 块
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO 自动生成的 catch 块
 			e.printStackTrace();
 		}
 		return users;
 	}
-	public static void write(){
-		
+	
+	public static void write(User user){
+	   List<User> users = read();
+	   if(user==null) return;
+	   if(users==null){
+		   users = new ArrayList<User>();
+	   }
+       users.add(user);
+	   SAXWriteXML.write(users);
 	}
-	public static void update(){
-		read();
-		write();
+	public static void writeList(List<User> uList){
+		 if(uList==null) return ;
+		 SAXWriteXML.write(uList);
+	}
+	public static void main(String[] args) {
+		List<User> users = read();
+		System.out.println(users.toString());
+		User user = new User();
+		user.setCreateDate("2017-05-01");
+		user.setEmail("12345@122.com");
+		user.setInstallNum("installnum123");
+		user.setInstruction("instruction123");
+		user.setPassword("1231444");
+		user.setUserName("nameDang");
+		user.setRegin("中国");
+		write(user);
 	}
 }
